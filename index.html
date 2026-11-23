@@ -1,0 +1,275 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AstroPlay - Play Astrocade Games</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: #090b12;
+    color: white;
+    font-family: Arial, sans-serif;
+}
+
+header {
+    padding: 22px 7%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #202332;
+}
+
+.logo {
+    font-size: 25px;
+    font-weight: bold;
+    color: #a78bfa;
+}
+
+.hero {
+    text-align: center;
+    padding: 55px 20px 30px;
+}
+
+.hero h1 {
+    font-size: 42px;
+    margin-bottom: 10px;
+}
+
+.hero p {
+    color: #999eb0;
+}
+
+.search {
+    display: flex;
+    max-width: 700px;
+    margin: 30px auto;
+    gap: 10px;
+    padding: 0 15px;
+}
+
+input {
+    flex: 1;
+    min-width: 0;
+    padding: 16px;
+    border-radius: 10px;
+    border: 1px solid #30364a;
+    background: #151927;
+    color: white;
+    font-size: 15px;
+    outline: none;
+}
+
+button {
+    border: none;
+    padding: 15px 25px;
+    border-radius: 10px;
+    background: #8b5cf6;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #7042d8;
+}
+
+.player-container {
+    max-width: 1150px;
+    margin: 25px auto;
+    padding: 0 20px;
+}
+
+.player-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    gap: 10px;
+}
+
+.player {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background: #151927;
+    border: 1px solid #30364a;
+    border-radius: 14px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+.placeholder {
+    color: #777e91;
+    text-align: center;
+    padding: 20px;
+}
+
+.actions {
+    display: flex;
+    gap: 10px;
+}
+
+.actions button {
+    padding: 10px 15px;
+}
+
+footer {
+    text-align: center;
+    padding: 35px;
+    color: #777e91;
+    font-size: 13px;
+}
+
+@media(max-width: 600px) {
+    .hero h1 {
+        font-size: 30px;
+    }
+
+    .search {
+        flex-direction: column;
+    }
+
+    .search button {
+        width: 100%;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <div class="logo">✦ AstroPlay</div>
+</header>
+
+<section class="hero">
+    <h1>Play Astrocade Games</h1>
+    <p>Paste a game link and start playing instantly.</p>
+
+    <div class="search">
+        <input
+            id="gameURL"
+            type="url"
+            placeholder="Paste an Astrocade game URL..."
+        >
+        <button onclick="loadGame()">Play Game</button>
+    </div>
+</section>
+
+<div class="player-container">
+
+    <div class="player-top">
+        <h3 id="gameTitle">Game Player</h3>
+
+        <div class="actions">
+            <button onclick="fullscreen()">⛶ Fullscreen</button>
+            <button onclick="openGame()">↗ Open</button>
+        </div>
+    </div>
+
+    <div class="player" id="player">
+        <div class="placeholder">
+            <h2>🎮</h2>
+            <p>Your game will appear here.</p>
+        </div>
+    </div>
+
+</div>
+
+<footer>
+    AstroPlay • An independent Astrocade game player
+</footer>
+
+<script>
+let currentGame = "";
+
+function loadGame() {
+    const input = document.getElementById("gameURL");
+    const url = input.value.trim();
+
+    try {
+        const parsed = new URL(url);
+
+        if (
+            parsed.protocol !== "https:" ||
+            !(
+                parsed.hostname === "astrocade.com" ||
+                parsed.hostname.endsWith(".astrocade.com")
+            )
+        ) {
+            alert("Please enter a valid Astrocade game URL.");
+            return;
+        }
+
+        if (!parsed.pathname.startsWith("/games/")) {
+            alert("Please enter an Astrocade game page URL.");
+            return;
+        }
+
+        currentGame = parsed.href;
+
+        document.getElementById("player").innerHTML = `
+            <iframe
+                src="${currentGame}"
+                allow="fullscreen; autoplay; gamepad"
+                allowfullscreen
+                title="Astrocade Game">
+            </iframe>
+        `;
+
+        document.getElementById("gameTitle").textContent =
+            "Now Playing";
+
+        history.replaceState(
+            null,
+            "",
+            "?game=" + encodeURIComponent(currentGame)
+        );
+
+    } catch (error) {
+        alert("Please enter a valid game link.");
+    }
+}
+
+function fullscreen() {
+    const iframe = document.querySelector("#player iframe");
+
+    if (iframe) {
+        if (iframe.requestFullscreen) {
+            iframe.requestFullscreen();
+        }
+    }
+}
+
+function openGame() {
+    if (currentGame) {
+        window.open(currentGame, "_blank");
+    }
+}
+
+const savedGame = new URLSearchParams(
+    window.location.search
+).get("game");
+
+if (savedGame) {
+    document.getElementById("gameURL").value = savedGame;
+    loadGame();
+}
+</script>
+
+</body>
+</html>
